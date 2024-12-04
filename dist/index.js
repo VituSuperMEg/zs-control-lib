@@ -3,12 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.zStorage = exports.z = void 0;
+exports.zObservability = exports.zStorage = exports.z = void 0;
 const jwt_decode_1 = require("jwt-decode");
 const react_1 = require("react");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const logger_1 = require("./obs/class/logger");
+const metrics_1 = require("./obs/class/metrics");
+const tracer_1 = require("./obs/class/tracer");
 exports.z = {
-    // Gerenciamento de estado global
     createStateManagement({ state, set }) {
         let globalState = state(); // Estado inicial
         const listeners = []; // Lista de ouvintes
@@ -17,7 +19,6 @@ exports.z = {
             listeners.forEach((listener) => listener(globalState));
         };
         const setFunctions = set ? set(updateState) : {};
-        // Hook para conectar ao estado global
         const useStateManagement = () => {
             const [localState, setLocalState] = (0, react_1.useState)(globalState);
             (0, react_1.useEffect)(() => {
@@ -25,7 +26,6 @@ exports.z = {
                     setLocalState(updatedState);
                 };
                 listeners.push(listener);
-                // Remove o ouvinte ao desmontar
                 return () => {
                     const index = listeners.indexOf(listener);
                     if (index > -1)
@@ -36,12 +36,11 @@ exports.z = {
         };
         return useStateManagement;
     },
-    // Utilitário para valores temporários
     temp: ({ value, watch, timeDestory = 0 }) => {
         const [tempValue, setTempValue] = (0, react_1.useState)(value);
-        const [resetTrigger, setResetTrigger] = (0, react_1.useState)(0); // Gatilho para reset
+        const [resetTrigger, setResetTrigger] = (0, react_1.useState)(0);
         const addValue = (add) => {
-            const newValue = tempValue + add; // Assume que o operador `+` é válido
+            const newValue = tempValue + add;
             setTempValue(newValue);
             if (watch()) {
                 destroy();
@@ -50,7 +49,7 @@ exports.z = {
         };
         const destroy = () => {
             setTempValue(value);
-            setResetTrigger((prev) => prev + 1); // Atualiza o gatilho
+            setResetTrigger((prev) => prev + 1);
         };
         (0, react_1.useEffect)(() => {
             if (timeDestory > 0) {
@@ -59,10 +58,24 @@ exports.z = {
                 }, timeDestory);
                 return () => clearTimeout(timer);
             }
-        }, [timeDestory, resetTrigger]); // Adiciona o gatilho ao array de dependências
+        }, [timeDestory, resetTrigger]);
         return {
             value: tempValue,
             addValue,
+        };
+    },
+    createEventChannel() {
+        const subscribers = new Set();
+        return {
+            subscribe: (callback) => {
+                subscribers.add(callback);
+            },
+            unsubscribe: (callback) => {
+                subscribers.delete(callback);
+            },
+            publish: (data) => {
+                subscribers.forEach((callback) => callback(data));
+            },
         };
     },
 };
@@ -134,5 +147,17 @@ exports.zStorage = {
                 },
             };
         }
+    },
+};
+exports.zObservability = {
+    create(config) {
+        const logger = new logger_1.Logger(config.serviceName);
+        const metrics = new metrics_1.Metrics();
+        const tracer = new tracer_1.Tracer();
+        return {
+            logger,
+            metrics,
+            tracer,
+        };
     },
 };

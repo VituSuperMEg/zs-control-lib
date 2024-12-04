@@ -1,12 +1,19 @@
+import { ZObservability, ZObservabilityConfig } from "./obs/interfaces";
 export type StateCreator<T> = () => T;
 export type SetFunction<T> = (update: (state: Partial<T>) => void) => Record<string, any>;
 export interface ZsControlConfig<T> {
     state: StateCreator<T>;
     set?: SetFunction<T>;
 }
+interface EventChannel<T> {
+    subscribe: (callback: (data: T) => void) => void;
+    unsubscribe: (callback: (data: T) => void) => void;
+    publish: (data: T) => void;
+}
 export interface ZsControl {
     createStateManagement<T>(config: ZsControlConfig<T>): () => T & Record<string, any>;
     temp: <T>(config: TempConfig<T>) => TempState<T>;
+    createEventChannel<T>(): EventChannel<T>;
 }
 export interface TempConfig<T> {
     value: T;
@@ -36,5 +43,8 @@ interface ZStorageInstance<T> {
 }
 export declare const zStorage: {
     setHook<T>(hook: () => T): ZStorageInstance<T>;
+};
+export declare const zObservability: {
+    create(config: ZObservabilityConfig): ZObservability;
 };
 export {};

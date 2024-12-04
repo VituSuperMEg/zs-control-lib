@@ -1,7 +1,12 @@
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import jwt from "jsonwebtoken";
+import { ZObservability, ZObservabilityConfig } from "./obs/interfaces";
+import { Logger } from "./obs/class/logger";
+import { Metrics } from "./obs/class/metrics";
+import { Tracer } from "./obs/class/tracer";
 
+// Type do state inicial
 export type StateCreator<T> = () => T;
 export type SetFunction<T> = (
   update: (state: Partial<T>) => void
@@ -11,13 +16,18 @@ export interface ZsControlConfig<T> {
   state: StateCreator<T>;
   set?: SetFunction<T>;
 }
-
+interface EventChannel<T> {
+  subscribe: (callback: (data: T) => void) => void;
+  unsubscribe: (callback: (data: T) => void) => void;
+  publish: (data: T) => void;
+}
 export interface ZsControl {
   createStateManagement<T>(
     config: ZsControlConfig<T>
   ): () => T & Record<string, any>;
 
   temp: <T>(config: TempConfig<T>) => TempState<T>;
+  createEventChannel<T>(): EventChannel<T>;
 }
 
 export interface TempConfig<T> {
@@ -101,6 +111,22 @@ export const z: ZsControl = {
     return {
       value: tempValue,
       addValue,
+    };
+  },
+
+  createEventChannel<T>(): EventChannel<T> {
+    const subscribers: Set<(data: T) => void> = new Set();
+
+    return {
+      subscribe: (callback: (data: T) => void) => {
+        subscribers.add(callback);
+      },
+      unsubscribe: (callback: (data: T) => void) => {
+        subscribers.delete(callback);
+      },
+      publish: (data: T) => {
+        subscribers.forEach((callback) => callback(data));
+      },
     };
   },
 };
@@ -195,5 +221,19 @@ export const zStorage = {
         },
       };
     }
+  },
+};
+
+export const zObservability = {
+  create(config: ZObservabilityConfig): ZObservability {
+    const logger = new Logger(config.serviceName);
+    const metrics = new Metrics();
+    const tracer = new Tracer();
+
+    return {
+      logger,
+      metrics,
+      tracer,
+    };
   },
 };
