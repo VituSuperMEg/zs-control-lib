@@ -9,6 +9,7 @@ const react_1 = require("react");
 const logger_1 = require("./obs/class/logger");
 const metrics_1 = require("./obs/class/metrics");
 const tracer_1 = require("./obs/class/tracer");
+const pipe_1 = require("./functions/pipe");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 exports.z = {
     createStateManagement({ state, set }) {
@@ -78,6 +79,7 @@ exports.z = {
             },
         };
     },
+    pipe: pipe_1.pipe,
 };
 exports.zStorage = {
     setHook(hook) {

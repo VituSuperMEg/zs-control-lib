@@ -4,7 +4,7 @@ import { ZObservability, ZObservabilityConfig } from "./obs/interfaces";
 import { Logger } from "./obs/class/logger";
 import { Metrics } from "./obs/class/metrics";
 import { Tracer } from "./obs/class/tracer";
-import { pipe } from "./functions/pipe";
+import { pipe, compose, memoize, once } from "./functions";
 import {
   ZsControl,
   ZsControlConfig,
@@ -105,6 +105,9 @@ export const z: ZsControl = {
     };
   },
   pipe,
+  compose,
+  memoize,
+  once,
 };
 
 interface ZStorageInstance<T> {
