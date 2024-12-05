@@ -17,6 +17,13 @@ export interface ZsControl {
         ...Array<(arg: any) => any>,
         (arg: any) => TOutput
     ]) => (input: TInput) => TOutput;
+    compose: <T>(...fns: [(arg: T) => any, ...Array<(arg: any) => any>]) => (x: T) => T;
+    memoize: <T extends (...args: any[]) => any>(fn: T) => T;
+    once: <T extends (...args: any[]) => any>(fn: T) => T;
+    day: {
+        format: (formatString: string) => string;
+    };
+    clock: any;
 }
 export interface TempConfig<T> {
     value: T;

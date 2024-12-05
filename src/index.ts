@@ -5,6 +5,7 @@ import { Logger } from "./obs/class/logger";
 import { Metrics } from "./obs/class/metrics";
 import { Tracer } from "./obs/class/tracer";
 import { pipe, compose, memoize, once } from "./functions";
+import { day, clock } from "./date";
 import {
   ZsControl,
   ZsControlConfig,
@@ -108,6 +109,10 @@ export const z: ZsControl = {
   compose,
   memoize,
   once,
+  day: {
+    format: (formatString: string) => day().format(formatString),
+  },
+  clock,
 };
 
 interface ZStorageInstance<T> {

@@ -29,6 +29,11 @@ export interface ZsControl {
   memoize: <T extends (...args: any[]) => any>(fn: T) => T;
 
   once: <T extends (...args: any[]) => any>(fn: T) => T;
+
+  day: {
+    format: (formatString: string) => string;
+  };
+  clock: any;
 }
 
 export interface TempConfig<T> {
