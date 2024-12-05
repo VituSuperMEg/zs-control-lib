@@ -1,45 +1,20 @@
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
-import jwt from "jsonwebtoken";
 import { ZObservability, ZObservabilityConfig } from "./obs/interfaces";
 import { Logger } from "./obs/class/logger";
 import { Metrics } from "./obs/class/metrics";
 import { Tracer } from "./obs/class/tracer";
-
-// Type do state inicial
-export type StateCreator<T> = () => T;
-export type SetFunction<T> = (
-  update: (state: Partial<T>) => void
-) => Record<string, any>;
-
-export interface ZsControlConfig<T> {
-  state: StateCreator<T>;
-  set?: SetFunction<T>;
-}
-interface EventChannel<T> {
-  subscribe: (callback: (data: T) => void) => void;
-  unsubscribe: (callback: (data: T) => void) => void;
-  publish: (data: T) => void;
-}
-export interface ZsControl {
-  createStateManagement<T>(
-    config: ZsControlConfig<T>
-  ): () => T & Record<string, any>;
-
-  temp: <T>(config: TempConfig<T>) => TempState<T>;
-  createEventChannel<T>(): EventChannel<T>;
-}
-
-export interface TempConfig<T> {
-  value: T;
-  watch: () => boolean;
-  timeDestory?: number;
-}
-
-export interface TempState<T> {
-  value: T;
-  addValue: (add: T) => T;
-}
+import { pipe } from "./functions/pipe";
+import {
+  ZsControl,
+  ZsControlConfig,
+  TempConfig,
+  TempState,
+  EventChannel,
+  ZStorageConfig,
+} from "./interfaces";
+import { StorageType } from "./types";
+import jwt from "jsonwebtoken";
 
 export const z: ZsControl = {
   createStateManagement<T>({ state, set }: ZsControlConfig<T>) {
@@ -129,14 +104,8 @@ export const z: ZsControl = {
       },
     };
   },
+  pipe,
 };
-
-type StorageType = "localStorage" | "cookieStorage" | "passwordStorage";
-
-interface ZStorageConfig {
-  typeStorage: StorageType;
-  satisfiesAuthentication?: boolean;
-}
 
 interface ZStorageInstance<T> {
   key: (key: string) => ZStorageInstance<T>;
